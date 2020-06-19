@@ -8,7 +8,7 @@ The following are examples of how to run the attacks in the different threat mod
 ### L0-bounded
 In this case `k` represents the number of pixels to modify. For untargeted attacks
 ```
-CUDA_VISIBLE_DEVICES=0 python eval.py --attack=rs_attack --norm=L0 \
+CUDA_VISIBLE_DEVICES=0 python eval.py --norm=L0 \
 	--model=[pt_vgg | pt_resnet] --n_queries=10000 --alpha_init=0.3 \
 	--data_path=/path/to/validation/set --k=150 --n_ex=500
 ```
@@ -19,7 +19,7 @@ As additional options the flag `--constant_schedule` uses a constant schedule fo
 ### Image-specific patches
 For image- and location-specific patches of size 30x30 (with `k=900`)
 ```
-CUDA_VISIBLE_DEVICES=0 python eval.py --attack=rs_attack --norm=patches \
+CUDA_VISIBLE_DEVICES=0 python eval.py --norm=patches \
 	--model=[pt_vgg | pt_resnet] --n_queries=10000 --alpha_init=0.3 \
 	--data_path=/path/to/validation/set --k=900 --n_ex=100
 ```
@@ -27,14 +27,14 @@ CUDA_VISIBLE_DEVICES=0 python eval.py --attack=rs_attack --norm=patches \
 ### Universal patches and frames
 For universal untargeted patches of size 50x50 (with `k=2500`)
 ```
-CUDA_VISIBLE_DEVICES=0 python eval.py --attack=rs_attack \
+CUDA_VISIBLE_DEVICES=0 python eval.py \
 	--norm=patches_universal --model=[pt_vgg | pt_resnet] \
 	--n_queries=100000 --alpha_init=0.3 \
 	--data_path=/path/to/validation/set --k=2500 --n_ex=100
 ```
 while for universal untargeted frames of width 4 (with `k=4`)
 ```
-CUDA_VISIBLE_DEVICES=0 python eval.py --attack=rs_attack \
+CUDA_VISIBLE_DEVICES=0 python eval.py \
 	--norm=frames_universal --model=[pt_vgg | pt_resnet] \
 	--n_queries=100000 --alpha_init=0.005 \
 	--data_path=/path/to/validation/set --k=4 --n_ex=100
