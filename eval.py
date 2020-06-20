@@ -3,25 +3,21 @@ import argparse
 import torch
 import torch.nn as nn
 
-import numpy as np
-
 import torchvision.datasets as datasets
 import torch.utils.data as data
 import torchvision.transforms as transforms
 from torchvision import models as torch_models
 
-import sys
-import time
 from datetime import datetime
 
 model_class_dict = {'pt_vgg': torch_models.vgg16_bn,
                     'pt_resnet': torch_models.resnet50,
                     }
 
+
 class PretrainedModel():
     def __init__(self, modelname):
         model_pt = model_class_dict[modelname](pretrained=True)
-        #model.eval()
         self.model = nn.DataParallel(model_pt.cuda())
         self.model.eval()
         self.mu = torch.Tensor([0.485, 0.456, 0.406]).float().view(1, 3, 1, 1).cuda()
@@ -38,6 +34,7 @@ class PretrainedModel():
     def __call__(self, x):
         return self.predict(x)
 
+
 def random_target_classes(y_pred, n_classes):
     y = torch.zeros_like(y_pred)
     for counter in range(y_pred.shape[0]):
@@ -47,6 +44,7 @@ def random_target_classes(y_pred, n_classes):
         y[counter] = l[t] + 0
 
     return y.long()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -235,8 +233,8 @@ if __name__ == '__main__':
                 torch.save({'adv': adv_complete, 'frame': frame, 'ind': ind},
                     './results/{}/{}_{}_{}_1_{}_nqueries_{:.0f}_alphainit_{:.3f}_loss_{}_eps_{:.0f}_targeted_{}_targetclass_{}.pth'.format(
                     args.dataset, args.attack, args.norm, args.model, args.n_ex, args.n_queries,
-                    alpha_init, args.loss, args.eps, args.targeted, args.target_class))
+                    args.alpha_init, args.loss, args.eps, args.targeted, args.target_class))
     
     else:
         raise ValueError('unknown attack')
-            
+

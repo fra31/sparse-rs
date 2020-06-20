@@ -9,11 +9,8 @@ import math
 import torch.nn.functional as F
 
 import numpy as np
-import copy
-import sys
 
-from other_utils import Logger
-import os
+from utils import Logger
 
 
 class RSAttack():
@@ -189,9 +186,7 @@ class RSAttack():
     
     def attack_single_run(self, x, y):
         with torch.no_grad():
-            adv = x.clone()
             c, h, w = x.shape[1:]
-            n_features = c * h * w
             n_ex_total = x.shape[0]
             
             if self.norm == 'L0':
@@ -418,8 +413,6 @@ class RSAttack():
                     patch_new = patch_univ.clone()
                     patch_new[0, :, p_it[0]:p_it[0] + s_it, p_it[1]:p_it[1] + s_it] += self.random_choice([c, 1, 1])
                     patch_new.clamp_(0., 1.)
-                    loss_new = 0.
-                    n_succs_new = 0
 
                     x_new = x.clone()
                     
