@@ -1,6 +1,9 @@
 # Sparse-RS: a versatile framework for query-efficient sparse black-box adversarial attacks
-### Francesco Croce, Maksym Andriushchenko, Naman D. Singh, Nicolas Flammarion, Matthias Hein
-#####  University of Tübingen and EPFL
+**Francesco Croce, Maksym Andriushchenko, Naman D. Singh, Nicolas Flammarion, Matthias Hein**
+
+**University of Tübingen and EPFL**
+
+**Paper:** [https://arxiv.org/abs/2006.12834](https://arxiv.org/abs/2006.12834)
 
 
 ## Abstract
