@@ -5,6 +5,7 @@
 
 **Paper:** [https://arxiv.org/abs/2006.12834](https://arxiv.org/abs/2006.12834)
 
+**A short version is accepted to [ECCV'20 Workshop on Adversarial Robustness in the Real World](https://eccv20-adv-workshop.github.io/)**
 
 ## Abstract
 A large body of research has focused on adversarial attacks which require to modify all input features with small L2- or Linf-norms.
