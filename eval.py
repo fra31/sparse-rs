@@ -8,16 +8,18 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 from torchvision import models as torch_models
 
+import sys
+import time
 from datetime import datetime
 
 model_class_dict = {'pt_vgg': torch_models.vgg16_bn,
                     'pt_resnet': torch_models.resnet50,
                     }
 
-
 class PretrainedModel():
     def __init__(self, modelname):
         model_pt = model_class_dict[modelname](pretrained=True)
+        #model.eval()
         self.model = nn.DataParallel(model_pt.cuda())
         self.model.eval()
         self.mu = torch.Tensor([0.485, 0.456, 0.406]).float().view(1, 3, 1, 1).cuda()
@@ -34,7 +36,6 @@ class PretrainedModel():
     def __call__(self, x):
         return self.predict(x)
 
-
 def random_target_classes(y_pred, n_classes):
     y = torch.zeros_like(y_pred)
     for counter in range(y_pred.shape[0]):
@@ -45,8 +46,8 @@ def random_target_classes(y_pred, n_classes):
 
     return y.long()
 
-
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--dataset', type=str, default='ImageNet')
@@ -57,21 +58,29 @@ if __name__ == '__main__':
     parser.add_argument('--loss', type=str, default='margin')
     parser.add_argument('--model', default='pt_vgg', type=str)
     parser.add_argument('--n_ex', type=int, default=1000)
-    parser.add_argument('--attack', type=str, default='sparse-rs')
+    parser.add_argument('--attack', type=str, default='rs_attack')
     parser.add_argument('--n_queries', type=int, default=1000)
     parser.add_argument('--targeted', action='store_true')
     parser.add_argument('--target_class', type=int)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--constant_schedule', action='store_true')
+    parser.add_argument('--save_dir', type=str, default='./results')
+    
+    # Sparse-RS parameter
     parser.add_argument('--alpha_init', type=float, default=.3)
+    parser.add_argument('--resample_period_univ', type=int)
+    parser.add_argument('--loc_update_period', type=int)
     
     args = parser.parse_args()
 
     if args.data_path is None:
-        args.data_path = "/scratch/maksym/imagenet/val_orig"
+        args.data_path = "/home/scratch/datasets/imagenet/val"
     
     args.eps = args.k + 0
     args.bs = args.n_ex + 0
+    args.p_init = args.alpha_init + 0.
+    args.resample_loc = args.resample_period_univ
+    args.update_loc_period = args.loc_update_period
     
     if args.dataset == 'ImageNet':
         # load pretrained model
@@ -95,25 +104,30 @@ if __name__ == '__main__':
         testiter = iter(test_loader)
         x_test, y_test = next(testiter)
         
-    if args.attack in ['sparse-rs']:
+    if args.attack in ['rs_attack']:
         # run Sparse-RS attacks
-        if not os.path.exists('./results/{}/'.format(args.dataset)):
-            os.makedirs('./results/{}/'.format(args.dataset))
-        if not os.path.exists('./results/logs/'):
-            os.makedirs('./results/logs/')
+        logsdir = '{}/logs_{}_{}'.format(args.save_dir, args.attack, args.norm)
+        savedir = '{}/{}_{}'.format(args.save_dir, args.attack, args.norm)
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
+        if not os.path.exists(logsdir):
+            os.makedirs(logsdir)
         
         if args.targeted or 'universal' in args.norm:
             args.loss = 'ce'
-        param_run = '{}_{}_{}_1_{}_nqueries_{:.0f}_alphainit_{:.2f}_loss_{}_eps_{:.0f}_targeted_{}_targetclass_{}_seed_{:.0f}'.format(
-            args.attack, args.norm, args.model, args.n_ex, args.n_queries, args.alpha_init,
+        data_loader = testiter if 'universal' in args.norm else None
+        
+        param_run = '{}_{}_{}_1_{}_nqueries_{:.0f}_pinit_{:.2f}_loss_{}_eps_{:.0f}_targeted_{}_targetclass_{}_seed_{:.0f}'.format(
+            args.attack, args.norm, args.model, args.n_ex, args.n_queries, args.p_init,
             args.loss, args.eps, args.targeted, args.target_class, args.seed)
         if args.constant_schedule:
             param_run += '_constantpinit'
         
         from rs_attacks import RSAttack
         adversary = RSAttack(model, norm=args.norm, eps=int(args.eps), verbose=True, n_queries=args.n_queries,
-            alpha_init=args.alpha_init, log_path='./results/{}/log_run_{}_{}.txt'.format('logs', str(datetime.now())[:-7], param_run),
-            loss=args.loss, targeted=args.targeted, seed=args.seed, constant_schedule=args.constant_schedule)
+            p_init=args.p_init, log_path='{}/log_run_{}_{}.txt'.format(logsdir, str(datetime.now())[:-7], param_run),
+            loss=args.loss, targeted=args.targeted, seed=args.seed, constant_schedule=args.constant_schedule,
+            data_loader=data_loader, resample_loc=args.resample_loc)
         
         # set target classes
         if args.targeted and 'universal' in args.norm:
@@ -127,7 +141,7 @@ if __name__ == '__main__':
             y_test = random_target_classes(y_test, 1000)
             print('target labels', y_test)
         
-        bs = min(args.bs, 250)
+        bs = min(args.bs, 500)
         assert args.n_ex % args.bs == 0
         adv_complete = x_test.clone()
         qr_complete = torch.zeros([x_test.shape[0]]).cpu()
@@ -187,21 +201,22 @@ if __name__ == '__main__':
             adversary.logger.log('max L0 perturbation {:.0f} - nan in img {} - max img {:.5f} - min img {:.5f}'.format(
                 res.max(), (adv_complete != adv_complete).sum(), adv_complete.max(), adv_complete.min()))
                 
-            ind_succ = (((pred_adv == 0.) * (pred == 1.)) == 1.).nonzero().squeeze()
-            adversary.logger.log('success rate={:.0f}/{:.0f} ({:.2%}) - avg # queries {:.1f} - med # queries {:.1f}'.format(
-                pred.sum() - pred_adv.sum(), pred.sum(), (pred.sum() - pred_adv.sum()).float() / pred.sum(),
-                qr_complete[ind_succ].float().mean(), torch.median(qr_complete[ind_succ].float())))
+            ind_corrcl = pred == 1.
+            ind_succ = (pred_adv == 0.) * (pred == 1.)
             
+            str_stats = 'success rate={:.0f}/{:.0f} ({:.2%}) \n'.format(
+                pred.sum() - pred_adv.sum(), pred.sum(), (pred.sum() - pred_adv.sum()).float() / pred.sum()) +\
+                '[successful points] avg # queries {:.1f} - med # queries {:.1f}\n'.format(
+                qr_complete[ind_succ].float().mean(), torch.median(qr_complete[ind_succ].float()))
+            qr_complete[~ind_succ] = args.n_queries + 0
+            str_stats += '[correctly classified points] avg # queries {:.1f} - med # queries {:.1f}\n'.format(
+                qr_complete[ind_corrcl].float().mean(), torch.median(qr_complete[ind_corrcl].float()))
+            adversary.logger.log(str_stats)
             
             # save results depending on the threat model
             if args.norm in ['L0', 'patches', 'frames']:
-                save_path = './results/{}/{}_{}_{}_1_{}_nqueries_{:.0f}_alphainit_{:.2f}_loss_{}_eps_{:.0f}_targeted_{}_seed_{:.0f}'.format(
-                    args.dataset, args.attack, args.norm, args.model, args.n_ex, args.n_queries, args.alpha_init,
-                    args.loss, args.eps, args.targeted, args.seed)
-                if args.constant_schedule:
-                    save_path += '_constantschedule'
-                    
-                torch.save({'adv': adv_complete, 'qr': qr_complete}, '{}.pth'.format(save_path))
+                torch.save({'adv': adv_complete, 'qr': qr_complete},
+                    '{}/{}.pth'.format(savedir, param_run))
                     
             elif args.norm in ['patches_universal']:
                 # extract and save patch
@@ -213,9 +228,7 @@ if __name__ == '__main__':
                 patch = adv_complete[ind, :, loc[0]:loc[0] + s, loc[1]:loc[1] + s].unsqueeze(0)
                 
                 torch.save({'adv': adv_complete, 'patch': patch},
-                    './results/{}/{}_{}_{}_1_{}_nqueries_{:.0f}_alphainit_{:.2f}_loss_{}_eps_{:.0f}_targeted_{}.pth'.format(
-                    args.dataset, args.attack, args.norm, args.model, args.n_ex, args.n_queries,
-                    args.alpha_init, args.loss, args.eps, args.targeted))
+                    '{}/{}.pth'.format(savedir, param_run))
 
             elif args.norm in ['frames_universal']:
                 # extract and save frame and indeces of the perturbed pixels
@@ -231,10 +244,5 @@ if __name__ == '__main__':
                 frame = adv_complete[ind_img, :, ind[:, 0], ind[:, 1]]
                 
                 torch.save({'adv': adv_complete, 'frame': frame, 'ind': ind},
-                    './results/{}/{}_{}_{}_1_{}_nqueries_{:.0f}_alphainit_{:.3f}_loss_{}_eps_{:.0f}_targeted_{}_targetclass_{}.pth'.format(
-                    args.dataset, args.attack, args.norm, args.model, args.n_ex, args.n_queries,
-                    args.alpha_init, args.loss, args.eps, args.targeted, args.target_class))
+                    '{}/{}.pth'.format(savedir, param_run))
     
-    else:
-        raise ValueError('unknown attack')
-
