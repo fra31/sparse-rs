@@ -52,7 +52,7 @@ and for targeted attacks please use `--targeted --n_queries=100000 --alpha_init=
 As additional options the flag `--constant_schedule` uses a constant schedule for `alpha` instead of the piecewise constant decreasing one, while with `--seed=N` it is possible to set a custom random seed.
 
 ### Image-specific patches and frames
-For image- and location-specific patches of size 20x20 (with `k=400`)
+For untargeted image- and location-specific patches of size 20x20 (with `k=400`)
 ```
 CUDA_VISIBLE_DEVICES=0 python eval.py --norm=patches \
 	--model=[pt_vgg | pt_resnet] --n_queries=10000 --alpha_init=0.4 \
@@ -61,17 +61,17 @@ CUDA_VISIBLE_DEVICES=0 python eval.py --norm=patches \
 
 For targeted patches (size 40x40) please use `--targeted --n_queries=50000 --alpha_init=0.1 --k=1600`. The target class is randomly chosen for each point.
 
-while for image-specific frames of width 2 pixels (with `k=2`)
+For untargeted image-specific frames of width 2 pixels (with `k=2`)
 ```
 CUDA_VISIBLE_DEVICES=0 python eval.py --norm=frames \
 	--model=[pt_vgg | pt_resnet] --n_queries=10000 --alpha_init=0.5 \
 	--data_path=/path/to/validation/set --k=2 --n_ex=100
 ```
 
-For targeted frames (width of 3 pixels) please use `--targeted --n_queries=50000 --alpha_init=0.5 --k=3`. The target class is randomly chosen for each point
+For targeted frames (width of 3 pixels) please use `--targeted --n_queries=50000 --alpha_init=0.5 --k=3`. The target class is randomly chosen for each point.
 
 ### Universal patches and frames
-For universal targeted patches of size 50x50 (with `k=2500`)
+For targeted universal patches of size 50x50 (with `k=2500`)
 ```
 CUDA_VISIBLE_DEVICES=0 python eval.py \
 	--norm=patches_universal --model=[pt_vgg | pt_resnet] \
@@ -80,7 +80,7 @@ CUDA_VISIBLE_DEVICES=0 python eval.py \
 	--n_ex=30 --targeted --target_class=530
 ```
 
-and for universal frames of width 6 pixels (`k=6`)
+and for targeted universal frames of width 6 pixels (`k=6`)
 ```
 CUDA_VISIBLE_DEVICES=0 python eval.py \
 	--norm=frames_universal --model=[pt_vgg | pt_resnet] \
