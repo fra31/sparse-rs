@@ -23,10 +23,10 @@ images. Finally, we show that **Sparse-RS** can be applied for universal adversa
 ## About the paper
 Our proposed **Sparse-RS** framework is based on random search. Its main advantages are its simplicity and its wide applicability 
 to multiple threat models:
-<p align="center"><img src="img/algorithm_sparse_rs.png" width="700"></p>
+<p align="center"><img src="img/algorithm_sparse_rs.png" width="500"></p>
 
 We illustrate the versatility of the **Sparse-RS** framework by generating various sparse perturbations: L0-bounded, adversarial patches, and adversarial frames:
-<p align="center"><img src="img/l0_adversarial_examples.png" width="700"></p>
+<p align="center"><img src="img/l0_adversarial_examples.png" width="400"></p>
 <p align="center"><img src="img/patches_adversarial_examples.png" width="700"></p>
 <p align="center"><img src="img/frames_adversarial_examples.png" width="700"></p>
 
