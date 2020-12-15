@@ -26,7 +26,7 @@ to multiple threat models:
 <p align="center"><img src="img/algorithm_sparse_rs.png" width="800"></p>
 
 We illustrate the versatility of the **Sparse-RS** framework by generating various sparse perturbations: L0-bounded, adversarial patches, and adversarial frames:
-<p align="center"><img src="img/l0_adversarial_examples_untargeted.png" width="350"><img src="img/l0_adversarial_examples_targeted.png" width="350"></p>
+<p align="center"><img src="img/l0_adversarial_examples_untargeted.png" width="400"><img src="img/l0_adversarial_examples_targeted.png" width="400"></p>
 <p align="center"><img src="img/patches_adversarial_examples.png" width="800"></p>
 <p align="center"><img src="img/frames_adversarial_examples.png" width="800"></p>
 
