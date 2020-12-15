@@ -8,12 +8,16 @@
 **A short version is accepted to [ECCV'20 Workshop on Adversarial Robustness in the Real World](https://eccv20-adv-workshop.github.io/)**
 
 ## Abstract
-A large body of research has focused on adversarial attacks which require to modify all input features with small L2- or Linf-norms.
-In this paper we instead focus on query-efficient *sparse* attacks in the black-box setting. Our versatile framework, **Sparse-RS**, based on random search
-achieves state-of-the-art success rate and query efficiency for different sparse attack models such as L0-bounded perturbations (outperforming established white-box methods), adversarial patches, and adversarial framing. 
-We show the effectiveness of **Sparse-RS** on different datasets considering problems from image recognition and malware detection and multiple variations of sparse threat models, including targeted and universal perturbations. 
-In particular **Sparse-RS** can be used for realistic attacks such as universal adversarial patch attacks without requiring a substitute model. 
-
+Sparse adversarial perturbations received much less attention in the literature compared to L2- and Linf-attacks. 
+However, it is equally important to accurately assess the robustness of a model against sparse perturbations. Motivated by this goal, 
+we propose a versatile framework based on random search, **Sparse-RS**, for score-based sparse targeted and untargeted attacks in 
+the black-box setting. **Sparse-RS** does not rely on substitute models and achieves state-of-the-art success rate and query efficiency 
+for multiple sparse attack models: L0-bounded perturbations, adversarial patches, and adversarial frames. Unlike existing methods, the 
+L0-version of untargeted **Sparse-RS** achieves almost 100% success rate on ImageNet by perturbing *only* 0.1% of the total 
+number of pixels, outperforming all existing white-box attacks including L0-PGD. Moreover, our untargeted **Sparse-RS** achieves very 
+high success rates even for the challenging settings of 20x20 adversarial patches and 2-pixel wide adversarial frames for 224x224 
+images. Finally, we show that **Sparse-RS** can be applied for universal adversarial patches where it significantly outperforms transfer-based approaches.
+<p align="center"><img src="img/illustrations_figure1.png" width="700"></p>
 
 
 ## About the paper
@@ -21,17 +25,17 @@ Our proposed **Sparse-RS** framework is based on random search. Its main advanta
 to multiple threat models:
 <p align="center"><img src="img/algorithm_sparse_rs.png" width="700"></p>
 
-We illustrate the versatility of the **Sparse-RS** framework by generating universal targeted patches/frames, and also
-image- and location-specific patches:
-<p align="center"><img src="img/universal_targeted_patches_frames.png" width="700"></p>
-<p align="center"><img src="img/image_and_location_specific_patches.png" width="700"></p>
+We illustrate the versatility of the **Sparse-RS** framework by generating various sparse perturbations: L0-bounded, adversarial patches, and adversarial frames:
+<p align="center"><img src="img/l0_adversarial_examples.png" width="700"></p>
+<p align="center"><img src="img/patches_adversarial_examples.png" width="700"></p>
+<p align="center"><img src="img/frames_adversarial_examples.png" width="700"></p>
 
-In all these threat models we improve over other approaches:
-<p align="center"><img src="img/universal_targeted_patches_frames_table.png" width="700"></p>
-<p align="center"><img src="img/image_and_location_specific_patches_table.png" width="700"></p>
+In all these threat models we improve over the existing approaches:
+<p align="center"><img src="img/table_patches.png" width="700"></p>
+<p align="center"><img src="img/table_frames.png" width="700"></p>
 
-Moreover, for L0-perturbations **Sparse-RS** can even outperform strong white-box baselines such as L0 PGD (see PGD_0 (wb)).
-<p align="center"><img src="img/l0_curves.png" width="700"></p>
+Moreover, for L0-perturbations **Sparse-RS** can even outperform existing **white-box** methods such as L0 PGD.
+<p align="center"><img src="img/table_l0_bb_wb.png" width="400"></p>
 
 
 
