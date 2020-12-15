@@ -30,10 +30,10 @@ We illustrate the versatility of the **Sparse-RS** framework by generating vario
 <p align="center"><img src="img/patches_adversarial_examples.png" width="800"></p>
 <p align="center"><img src="img/frames_adversarial_examples.png" width="800"></p>
 
-**Sparse-RS** also can successfully generate black-box universal attacks in sparse threat models:
+**Sparse-RS** also can successfully generate black-box **universal attacks** in sparse threat models without requiring a surrogate model:
 <p align="center"><img src="img/universal_patches_frames.png" width="800"></p>
 
-In all these threat models we improve over the existing approaches:
+In all these threat models, **Sparse-RS** improves over the existing approaches:
 <p align="center"><img src="img/table_patches.png" width="800"></p>
 <p align="center"><img src="img/table_frames.png" width="800"></p>
 
