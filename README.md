@@ -5,7 +5,8 @@
 
 **Paper:** [https://arxiv.org/abs/2006.12834](https://arxiv.org/abs/2006.12834)
 
-**A short version is accepted to [ECCV'20 Workshop on Adversarial Robustness in the Real World](https://eccv20-adv-workshop.github.io/)**
+**AAAI 2022**
+<!-- **A short version is accepted to [ECCV'20 Workshop on Adversarial Robustness in the Real World](https://eccv20-adv-workshop.github.io/)** -->
 
 ## Abstract
 Sparse adversarial perturbations received much less attention in the literature compared to L2- and Linf-attacks. 
