@@ -48,8 +48,8 @@ The code is tested under Python 3.8.5 and PyTorch 1.8.0. It automatically downlo
 
 The following are examples of how to run the attacks in the different threat models.
 
-### L0-bounded
-In this case `k` represents the number of pixels to modify. For untargeted attacks
+### L0-bounded (pixel and feature space)
+In this case `k` represents the number of *pixels* to modify. For untargeted attacks
 ```
 CUDA_VISIBLE_DEVICES=0 python eval.py --norm=L0 \
 	--model=[pt_vgg | pt_resnet] --n_queries=10000 --alpha_init=0.3 \
