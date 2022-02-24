@@ -12,6 +12,8 @@ import sys
 import time
 from datetime import datetime
 
+from utils import SingleChannelModel
+
 model_class_dict = {'pt_vgg': torch_models.vgg16_bn,
                     'pt_resnet': torch_models.resnet50,
                     }
@@ -65,6 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--constant_schedule', action='store_true')
     parser.add_argument('--save_dir', type=str, default='./results')
+    parser.add_argument('--use_feature_space', action='store_true')
     
     # Sparse-RS parameter
     parser.add_argument('--alpha_init', type=float, default=.3)
@@ -74,7 +77,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.data_path is None:
-        args.data_path = "/home/scratch/datasets/imagenet/val"
+        args.data_path = "/scratch/datasets/imagenet/val"
     
     args.eps = args.k + 0
     args.bs = args.n_ex + 0
@@ -116,12 +119,23 @@ if __name__ == '__main__':
         if args.targeted or 'universal' in args.norm:
             args.loss = 'ce'
         data_loader = testiter if 'universal' in args.norm else None
+        if args.use_feature_space:
+            # reshape images to single color channel to perturb them individually
+            assert args.norm == 'L0'
+            bs, c, h, w = x_test.shape
+            x_test = x_test.view(bs, 1, h, w * c)
+            model = SingleChannelModel(model)
+            str_space = 'feature space'
+        else:
+            str_space = 'pixel space'
         
         param_run = '{}_{}_{}_1_{}_nqueries_{:.0f}_pinit_{:.2f}_loss_{}_eps_{:.0f}_targeted_{}_targetclass_{}_seed_{:.0f}'.format(
             args.attack, args.norm, args.model, args.n_ex, args.n_queries, args.p_init,
             args.loss, args.eps, args.targeted, args.target_class, args.seed)
         if args.constant_schedule:
             param_run += '_constantpinit'
+        if args.use_feature_space:
+            param_run += '_featurespace'
         
         from rs_attacks import RSAttack
         adversary = RSAttack(model, norm=args.norm, eps=int(args.eps), verbose=True, n_queries=args.n_queries,
@@ -198,8 +212,8 @@ if __name__ == '__main__':
             adversary.logger.log('robust accuracy {:.2%}'.format(acc / args.n_ex))
             
             res = (adv_complete - x_test != 0.).max(dim=1)[0].sum(dim=(1, 2))
-            adversary.logger.log('max L0 perturbation {:.0f} - nan in img {} - max img {:.5f} - min img {:.5f}'.format(
-                res.max(), (adv_complete != adv_complete).sum(), adv_complete.max(), adv_complete.min()))
+            adversary.logger.log('max L0 perturbation ({}) {:.0f} - nan in img {} - max img {:.5f} - min img {:.5f}'.format(
+                str_space, res.max(), (adv_complete != adv_complete).sum(), adv_complete.max(), adv_complete.min()))
                 
             ind_corrcl = pred == 1.
             ind_succ = (pred_adv == 0.) * (pred == 1.)
@@ -215,6 +229,10 @@ if __name__ == '__main__':
             
             # save results depending on the threat model
             if args.norm in ['L0', 'patches', 'frames']:
+                if args.use_feature_space:
+                    # reshape perturbed images to original rgb format
+                    bs, _, h, w = adv_complete.shape
+                    adv_complete = adv_complete.view(bs, 3, h, w // 3)
                 torch.save({'adv': adv_complete, 'qr': qr_complete},
                     '{}/{}.pth'.format(savedir, param_run))
                     

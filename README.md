@@ -57,6 +57,8 @@ CUDA_VISIBLE_DEVICES=0 python eval.py --norm=L0 \
 ```
 and for targeted attacks please use `--targeted --n_queries=100000 --alpha_init=0.1`. The target class is randomly chosen for each point.
 
+To use an attack in the *feature* space please add `--use_feature_space` (in this case `k` indicates the number of features to modify).
+
 As additional options the flag `--constant_schedule` uses a constant schedule for `alpha` instead of the piecewise constant decreasing one, while with `--seed=N` it is possible to set a custom random seed.
 
 ### Image-specific patches and frames

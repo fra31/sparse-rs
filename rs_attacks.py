@@ -89,6 +89,7 @@ class RSAttack():
         self.resample_loc = n_queries // 10 if resample_loc is None else resample_loc
         self.data_loader = data_loader
         self.update_loc_period = update_loc_period if not update_loc_period is None else 4 if not targeted else 10
+        
     
     def margin_and_loss(self, x, y):
         """
@@ -315,10 +316,10 @@ class RSAttack():
                         else:
                             # if update is 1x1 make sure the sampled color is different from the current one
                             old_clr = x_new[img, :, np_set // w, np_set % w].clone()
-                            assert old_clr.shape == (3, 1), print(old_clr)
+                            assert old_clr.shape == (c, 1), print(old_clr)
                             new_clr = old_clr.clone()
                             while (new_clr == old_clr).all().item():
-                                new_clr = self.random_choice([3, 1]).clone().clamp(0., 1.)
+                                new_clr = self.random_choice([c, 1]).clone().clamp(0., 1.)
                             x_new[img, :, np_set // w, np_set % w] = new_clr.clone()
                         
                     # compute loss of the new candidates
